@@ -10,19 +10,23 @@ import 'services/som_service.dart';
 import 'utils/custom_env.dart';
 
 void main() async {
-  
-  //SecurityService _security
+  CustomEnv.fromFile('.env-dev');
 
-  var cascadeHandler = Cascade().add(LoginApi(SecurityServiceImp()).handler).add(SomApi(SomService()).handler).handler;
+  SecurityService _securityService = SecurityServiceImp();
+
+  var cascadeHandler = Cascade()
+      .add(LoginApi(_securityService).handler)
+      .add(SomApi(SomService()).handler)
+      .handler;
 
   var handler = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(MiddlewareInterception().middleware)
-      .addMiddleware(SecurityServiceImp().authorization)
-      .addMiddleware(SecurityServiceImp().verifyJwt)
+      .addMiddleware(_securityService.authorization)
+      .addMiddleware(_securityService.verifyJwt)
       .addHandler(cascadeHandler);
 
-  await  CustomServer().initialize(
+  await CustomServer().initialize(
       handler: handler,
       address: 'localhost',
       port: await CustomEnv.get<int>(key: 'server_port'));

@@ -2,8 +2,9 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import '../infra/security/security_service.dart';
+import 'api.dart';
 
-class LoginApi {
+class LoginApi  extends Api{
   final SecurityService _securityService;
 
   LoginApi(this._securityService);
@@ -18,5 +19,10 @@ class LoginApi {
     });
 
     return router;
+  }
+  
+  @override
+  Handler getHandler() {
+    throw UnimplementedError();
   }
 }
