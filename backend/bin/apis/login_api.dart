@@ -4,12 +4,12 @@ import 'package:shelf_router/shelf_router.dart';
 import '../infra/security/security_service.dart';
 import 'api.dart';
 
-class LoginApi  extends Api{
+class LoginApi extends Api {
   final SecurityService _securityService;
 
   LoginApi(this._securityService);
-
-  Handler get handler {
+  @override
+  Handler getHandler() {
     Router router = Router();
 
     router.post('/login', (Request request) async {
@@ -17,12 +17,6 @@ class LoginApi  extends Api{
       var result = await _securityService.validateJWT(token);
       return Response.ok(token);
     });
-
     return router;
-  }
-  
-  @override
-  Handler getHandler() {
-    throw UnimplementedError();
   }
 }
