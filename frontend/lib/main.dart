@@ -1,115 +1,141 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import 'components/navbar/navigation_bar.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: MyApp(),
+  ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Intranet',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Intranet'),
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class _MyAppState extends State<MyApp> {
+  int currentIndex = 0;
+  final PageController controller = PageController();
+  late Timer timer;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  List<String> images = [
+    "http://10.3.4.29:9292/uploads/COMUNICADO_NATAL_VERSAO_33254_a6224d4076.png",
+    "http://10.3.4.29:9292/uploads/disco_f65c5170fb.png",
+    "http://10.3.4.29:9292/uploads/R1_b037a13134.png",
+    "http://10.3.4.29:9292/uploads/image001_2ea32dc03e.jpg",
+    "http://10.3.4.29:9292/uploads/R1_b037a13134.png",
+  ];
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    timer = Timer.periodic(Duration(seconds: 5), (Timer timer) {
+      if (currentIndex < images.length) {
+        currentIndex++;
+      } else {
+        currentIndex = 0;
+      }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      controller.animateToPage(
+        currentIndex,
+        duration: Duration(milliseconds: 350),
+        curve: Curves.easeIn,
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            const TopMenuBar(),
+            //const SizedBox(height: 5,),
+            SizedBox(
+              width: 1152,
+              height: 450,
+              child: PageView.builder(
+                controller: controller,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentIndex = index % images.length;
+                  });
+                },
+                itemCount: images.length,
+                itemBuilder: (context, index) {
+                  return SizedBox(
+                    height: 450,
+                    width: 1152,
+                    child: Image.network(
+                      images[index % images.length],
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            const SizedBox(
+              height: 20,
+            ),
+
+            SizedBox(
+              width: 1152,
+              child: Row(
+                children: [
+                  IconButton(
+                        onPressed: () {
+                          controller.animateToPage(currentIndex - 1,
+                              duration: Duration(seconds: 3),
+                              curve: Curves.slowMiddle);
+                          //controller.jumpToPage(currentIndex - 1);
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var i = 0; i < images.length; i++)
+                          buildIndicator(currentIndex == i)
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                        onPressed: () {
+                          controller.animateToPage(currentIndex + 1,
+                              duration: Duration(seconds: 3),
+                              curve: Curves.slowMiddle);
+                          //controller.jumpToPage(currentIndex + 1);
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                      )
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      //body: const TopMenuBar(),
     );
   }
+}
+
+Widget buildIndicator(bool isSelected) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 1),
+    child: Container(
+      height: isSelected ? 12 : 8,
+      width: isSelected ? 12 : 8,
+      decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isSelected ? Colors.black : Colors.grey),
+    ),
+  );
 }
