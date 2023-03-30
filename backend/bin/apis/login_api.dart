@@ -9,7 +9,7 @@ class LoginApi extends Api {
 
   LoginApi(this._securityService);
   @override
-  Handler getHandler() {
+  Handler getHandler({List<Middleware>? middlewares}) {
     Router router = Router();
 
     router.post('/login', (Request request) async {
@@ -17,6 +17,9 @@ class LoginApi extends Api {
       var result = await _securityService.validateJWT(token);
       return Response.ok(token);
     });
-    return router;
+    return createHandler(
+      router: router,
+      middlewares: middlewares,
+    );
   }
 }

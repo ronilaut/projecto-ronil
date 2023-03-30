@@ -6,14 +6,16 @@ import 'package:shelf_router/shelf_router.dart';
 import '../models/Som_model.dart';
 import '../services/generic_service.dart';
 import '../services/som_service.dart';
+import 'api.dart';
 
-class SomApi {
+class SomApi extends Api {
   final GenericService<SomModel> _service;
 
   SomApi(this._service);
-
-  Handler get handler {
-    Router router = Router();
+  
+  @override
+  Handler getHandler({List<Middleware>? middlewares}) {
+  Router router = Router();
 
     //Create
     router.post('/soms', (Request request) async {
@@ -50,6 +52,6 @@ class SomApi {
       return Response.ok('Eliminado um com sucesso');
     });
 
-    return router;
+    return createHandler(router: router, middlewares: middlewares);
   }
 }
