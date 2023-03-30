@@ -61,24 +61,40 @@ class _MyAppState extends State<MyApp> {
             SizedBox(
               width: 1152,
               height: 450,
-              child: PageView.builder(
-                controller: controller,
-                onPageChanged: (index) {
-                  setState(() {
-                    currentIndex = index % images.length;
-                  });
+              child: GestureDetector(
+                onHorizontalDragUpdate: (details) {
+                  // Detecta o movimento horizontal do mouse
+                  if (details.delta.dx > 0) {
+                    // Desliza para a página anterior
+                    controller.previousPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.ease);
+                  } else if (details.delta.dx < 0) {
+                    // Desliza para a próxima página
+                    controller.nextPage(
+                        duration: Duration(milliseconds: 300),
+                        curve: Curves.ease);
+                  }
                 },
-                itemCount: images.length,
-                itemBuilder: (context, index) {
-                  return SizedBox(
-                    height: 450,
-                    width: 1152,
-                    child: Image.network(
-                      images[index % images.length],
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
+                child: PageView.builder(
+                  controller: controller,
+                  onPageChanged: (index) {
+                    setState(() {
+                      currentIndex = index % images.length;
+                    });
+                  },
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      height: 450,
+                      width: 1152,
+                      child: Image.network(
+                        images[index % images.length],
+                        fit: BoxFit.cover,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(
@@ -90,14 +106,14 @@ class _MyAppState extends State<MyApp> {
               child: Row(
                 children: [
                   IconButton(
-                        onPressed: () {
-                          controller.animateToPage(currentIndex - 1,
-                              duration: Duration(seconds: 3),
-                              curve: Curves.slowMiddle);
-                          //controller.jumpToPage(currentIndex - 1);
-                        },
-                        icon: const Icon(Icons.arrow_back),
-                      ),
+                    onPressed: () {
+                      controller.animateToPage(currentIndex - 1,
+                          duration: Duration(seconds: 3),
+                          curve: Curves.slowMiddle);
+                      //controller.jumpToPage(currentIndex - 1);
+                    },
+                    icon: const Icon(Icons.arrow_back),
+                  ),
                   Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -108,14 +124,14 @@ class _MyAppState extends State<MyApp> {
                     ),
                   ),
                   IconButton(
-                        onPressed: () {
-                          controller.animateToPage(currentIndex + 1,
-                              duration: Duration(seconds: 3),
-                              curve: Curves.slowMiddle);
-                          //controller.jumpToPage(currentIndex + 1);
-                        },
-                        icon: const Icon(Icons.arrow_forward),
-                      )
+                    onPressed: () {
+                      controller.animateToPage(currentIndex + 1,
+                          duration: Duration(seconds: 3),
+                          curve: Curves.slowMiddle);
+                      //controller.jumpToPage(currentIndex + 1);
+                    },
+                    icon: const Icon(Icons.arrow_forward),
+                  )
                 ],
               ),
             ),
