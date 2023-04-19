@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:appwrite/appwrite.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,8 +21,8 @@ enum EntradaSaida { Entrada, Saida }
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _nomeController = TextEditingController();
-  List<File> _listaImagens = [];
-  List<String> _listaStringImagens = [];
+  List<File> _listaImagens = List.empty(growable: true);
+  List<String> _listaStringImagens = List.empty(growable: true);
   final _formKey = GlobalKey<FormState>();
   final List<String> _items = ['SOM', 'BPS'];
   late String _value;
@@ -65,7 +66,15 @@ class _HomePageState extends State<HomePage> {
         'images': bps.images.join(','),
       },
     );
-    print(id);
+  }
+
+  _listarBps() async {
+    Database db = await _recuperarBancoDados();
+    String sql = "SELECT * FROM bps";
+    List bpss = await db.rawQuery(sql);
+    for (var bps in bpss) {
+      print("${bps['id']} \n + ${bps['bps']}");
+    }
   }
 
   _selecionarImagemCamera() async {
@@ -92,14 +101,22 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  _limparCAmpos() {
+  _limparCampos() {
     setState(() {
+      // Reset form validation state
+      _formKey.currentState!.reset();
       _entradaSaida = EntradaSaida.Entrada;
       _nomeController.text = "";
-      _listaStringImagens = [];
-      _listaImagens = [];
+      _listaStringImagens = List.empty(growable: true);
+      _listaImagens = List.empty(growable: true);
     });
   }
+
+  /*Client client = Client();
+client
+    .setEndpoint('http://localhost:4466/v1')
+    .setProject('643caee32fc7808949fa')
+    .setSelfSigned(status: true); */
 
   @override
   void initState() {
@@ -110,6 +127,8 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     _recuperarBancoDados();
+    print("Lista ${_listaImagens.length}");
+    _listarBps();
 
     return Scaffold(
       appBar: AppBar(
@@ -133,9 +152,14 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   children: [
                     //!FormField das imagens
-                    FormField(
+                    FormField<List>(
                       initialValue: _listaImagens,
-                      
+                      validator: (imagens) {
+                        if (imagens == null || imagens.isEmpty) {
+                          return "Necessário selecionar uma imagem!";
+                        }
+                        return null;
+                      },
                       builder: (state) {
                         return Column(
                           children: [
@@ -243,14 +267,16 @@ class _HomePageState extends State<HomePage> {
                                                                       .red),
                                                             ),
                                                             onPressed: () {
-                                                              setState(() {
-                                                                _listaImagens
-                                                                    .removeAt(
-                                                                        indice);
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop();
-                                                              });
+                                                              setState(
+                                                                () {
+                                                                  _listaImagens
+                                                                      .removeAt(
+                                                                          indice);
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop();
+                                                                },
+                                                              );
                                                             },
                                                           ),
                                                         ],
@@ -285,12 +311,6 @@ class _HomePageState extends State<HomePage> {
                               ),
                           ],
                         );
-                      },
-                      validator: (imagens) {
-                        if (imagens == null || imagens.isEmpty) {
-                          return "Necessário selecionar uma imagem!";
-                        }
-                        return null;
                       },
                     ),
                     const SizedBox(
@@ -363,22 +383,44 @@ class _HomePageState extends State<HomePage> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        _formKey.currentState?.validate();
-
-                        if (_value == 'SOM') {
-                          Som som = Som(
-                              som: "$_value-${_nomeController.text}",
-                              images: _listaStringImagens,
-                              entrada: _entradaSaida!.name);
-                          _salvarSom(som);
-                          _limparCAmpos();
-                        } else {
-                          Bps bps = Bps(
-                              bps: "$_value-${_nomeController.text}",
-                              images: _listaStringImagens,
-                              entrada: _entradaSaida!.name);
-                          _salvarBps(bps);
-                          _limparCAmpos();
+                        if (_formKey.currentState != null) {
+                          if (_formKey.currentState!.validate()) {
+                            if (_value == 'SOM') {
+                              Som som = Som(
+                                  som: "$_value-${_nomeController.text}",
+                                  images: _listaStringImagens,
+                                  entrada: _entradaSaida!.name);
+                              _salvarSom(som);
+                              _limparCampos();
+                              final snackBar = SnackBar(
+                                content: const Text('BPS criado com Sucesso!'),
+                                action: SnackBarAction(
+                                  label: 'OK',
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    // Some code to undo the change.
+                                  },
+                                ),
+                              );
+                            } else {
+                              Bps bps = Bps(
+                                  bps: "$_value-${_nomeController.text}",
+                                  images: _listaStringImagens,
+                                  entrada: _entradaSaida!.name);
+                              _salvarBps(bps);
+                              _limparCampos();
+                              final snackBar = SnackBar(
+                                content: const Text('BPS criado com Sucesso!'),
+                                action: SnackBarAction(
+                                  label: 'OK',
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    // Some code to undo the change.
+                                  },
+                                ),
+                              );
+                            }
+                          }
                         }
                       },
                       child: const Text("Salvar"),

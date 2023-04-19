@@ -1,0 +1,11 @@
+openapi: 3.0.0
+info:
+  description: "API system"
+  version: "1.0.0"
+  title: "App Me"
+servers:
+  - url: http://localhost:4466
+    description: Local server
+tags:
+- name: "user"
+  description: "Access to User"
